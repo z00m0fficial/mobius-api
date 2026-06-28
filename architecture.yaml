@@ -1,0 +1,16 @@
+repository: mobius-api
+version: 0.1.0
+status: alpha
+layer: platform-integration
+department: Platform Services
+service: API Gateway
+mission: Provide unified external access to Mobius services.
+capabilities:
+  - health-endpoint
+  - founder-request-intake
+  - event-gateway
+  - identity-aware-requests
+quality_gates:
+  identity_required: true
+  events_emitted: true
+  api_contracts_documented: true
