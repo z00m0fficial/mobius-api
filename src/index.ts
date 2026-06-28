@@ -17,6 +17,26 @@ export interface FounderRequestResult {
   nextEvent: "RequestReceived";
 }
 
+export interface RequestReceivedEvent {
+  id: string;
+  name: "RequestReceived";
+  version: "1.0";
+  timestamp: string;
+  source: "mobius-api";
+  organizationId: string;
+  correlationId: string;
+  payload: {
+    requestId: string;
+    actorId: string;
+    text: string;
+  };
+}
+
+export interface FounderRequestAcceptance {
+  result: FounderRequestResult;
+  event: RequestReceivedEvent;
+}
+
 export function getHealth(): ApiHealth {
   return {
     service: "mobius-api",
@@ -27,13 +47,38 @@ export function getHealth(): ApiHealth {
 }
 
 export function acceptFounderRequest(input: FounderRequestInput): FounderRequestResult {
-  if (!input.organizationId || !input.actorId || !input.text.trim()) {
+  return acceptFounderRequestWithEvent(input).result;
+}
+
+export function acceptFounderRequestWithEvent(input: FounderRequestInput): FounderRequestAcceptance {
+  const text = input.text.trim();
+
+  if (!input.organizationId || !input.actorId || !text) {
     throw new Error("organizationId, actorId, and text are required");
   }
 
+  const requestId = "req-" + Date.now();
+  const correlationId = "corr-" + requestId;
+
   return {
-    requestId: "req-" + Date.now(),
-    status: "accepted",
-    nextEvent: "RequestReceived"
+    result: {
+      requestId,
+      status: "accepted",
+      nextEvent: "RequestReceived"
+    },
+    event: {
+      id: "evt-" + requestId,
+      name: "RequestReceived",
+      version: "1.0",
+      timestamp: new Date().toISOString(),
+      source: "mobius-api",
+      organizationId: input.organizationId,
+      correlationId,
+      payload: {
+        requestId,
+        actorId: input.actorId,
+        text
+      }
+    }
   };
 }
